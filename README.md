@@ -1,107 +1,157 @@
-to install the dependencies, u need to use this:"demeanvlad8@192 rc_proiect % npm install express serialport ws"
-Explicația proiectului – Sistem de securitate ESP32 + HiveMQ + Node.js + UI
+🔐 SecureHome – IoT Security Monitoring System
+📌 Descriere generală
 
-Acest proiect este un sistem de detectare a mișcării care folosește un ESP32, un senzor PIR, LED și comunicații MQTT prin HiveMQ Cloud, vizualizate în timp real într-un browser prin Node.js și WebSocket.
+SecureHome este o aplicație de monitorizare a unui sistem de securitate bazat pe IoT, care detectează mișcare folosind un senzor PIR conectat la un ESP32.
+Datele sunt transmise în timp real prin protocolul MQTT către HiveMQ Cloud, procesate de un server Node.js și afișate într-o interfață web modernă, folosind WebSockets.
 
-1️⃣ ESP32 – Senzor PIR și MQTT
+Aplicația simulează funcționarea unui sistem real de securitate pentru locuințe sau spații comerciale.
 
-ESP32 se conectează la WiFi (Wokwi-GUEST sau rețeaua ta locală).
+🧱 Arhitectura sistemului
+ESP32 + PIR Sensor
+        │
+        │ MQTT (TLS)
+        ▼
+   HiveMQ Cloud Broker
+        │
+        │ MQTT
+        ▼
+   Node.js Server
+        │
+        │ WebSocket
+        ▼
+   Web Browser (UI)
 
-Senzorul PIR detectează mișcare și semnalizează printr-un HIGH/LOW pe pinul digital 13.
+⚙️ Tehnologii utilizate
 
-LED-ul conectat pe pinul 12 se aprinde atunci când este detectată mișcare.
+ESP32 – microcontroler IoT
 
-ESP32 folosește biblioteca PubSubClient pentru a comunica cu brokerul MQTT (HiveMQ).
+WiFi – conectare la internet
 
-ESP32 trimite mesajele:
+MQTT – protocol de comunicare (publish / subscribe)
 
-DETECTED → când se detectează mișcare
-CLEAR → când zona devine sigură
+HiveMQ Cloud – broker MQTT cloud
+
+Node.js – server backend
+
+WebSocket – comunicare real-time cu frontend-ul
+
+HTML / CSS / JavaScript – interfață web
+
+🔄 Fluxul de funcționare
+1️⃣ ESP32 (dispozitiv IoT)
+
+Se conectează la rețeaua WiFi
+
+Se conectează securizat (TLS) la HiveMQ Cloud
+
+Citește starea senzorului PIR
+
+Publică mesaje MQTT pe topicul:
+
+home/security/motion
+
+Mesaje trimise:
+
+DETECTED – mișcare detectată
+
+CLEAR – zonă sigură
+
+2️⃣ HiveMQ Cloud (Broker MQTT)
+
+Primește mesajele publicate de ESP32
+
+Le distribuie tuturor clienților abonați la topic
+
+Asigură comunicarea securizată și fiabilă
+
+3️⃣ Node.js Server (Backend)
+
+Se conectează la HiveMQ Cloud ca MQTT client
+
+Se abonează la topicul home/security/motion
+
+Primește evenimentele de la ESP32
+
+Pornește un WebSocket server pe portul 8080
+
+Transmite datele în timp real către browser
+
+4️⃣ Interfața Web (Frontend)
+
+Se încarcă prin serverul Node.js (http://localhost:3000)
+
+Se conectează la WebSocket (ws://localhost:8080)
+
+Afișează:
+
+statusul sistemului (ARMED / DISARMED)
+
+starea zonei (Secure / Intrusion)
+
+istoric evenimente
+
+Oferă un dashboard modern, ușor de utilizat
+
+🟢 Moduri de funcționare
+🔓 DISARMED
+
+Sistemul este dezactivat
+
+Evenimentele nu sunt afișate
+
+Stare: „System Offline”
+
+🔒 ARMED
+
+Sistemul monitorizează mișcarea
+
+La DETECTED → alertă vizuală
+
+La CLEAR → revenire la stare sigură
+
+🚀 Inițializarea proiectului (pași clari)
+1️⃣ ESP32 (Wokwi sau fizic)
+
+Se pornește simularea sau placa
+
+Se verifică mesajele din Serial Monitor
+
+2️⃣ Pornirea serverului Node.js
+node server.js
 
 
-TLS (port 8883) asigură că mesajele sunt criptate între ESP32 și HiveMQ Cloud.
+Output așteptat:
 
-ESP32 folosește espClient.setInsecure() în Wokwi pentru a ignora verificarea certificatului TLS, ceea ce simplifică simularea.
+🚀 Server pornit: http://localhost:3000
+✅ Conectat la HiveMQ Cloud
+📡 Subscribed la topic: home/security/motion
 
-Flux ESP32 → HiveMQ
-[PIR HIGH] -> ESP32 → MQTT.publish("home/security/motion", "DETECTED")
-[PIR LOW]  -> ESP32 → MQTT.publish("home/security/motion", "CLEAR")
+3️⃣ Pornirea interfeței web
 
-2️⃣ HiveMQ Cloud – Broker MQTT
+Deschide browser:
 
-HiveMQ Cloud primește mesajele de la ESP32 și le păstrează pe topic-ul home/security/motion.
+http://localhost:3000
 
-Node.js se conectează ca client MQTT, subscribe la topic-ul respectiv și primește toate mesajele.
+4️⃣ Testare
 
-3️⃣ Node.js – Server Web și WebSocket
+Simulează mișcare PIR
 
-Server-ul Node.js face două lucruri simultan:
+Observă evenimentele în UI în timp real
 
-Servește interfața web (index.html) pe portul 3000.
+🧪 Testare și depanare
 
-Rulează un WebSocket server pe portul 8080 pentru a trimite datele în timp real către browser.
+✔ Dacă mesajele apar:
 
-Când Node.js primește un mesaj MQTT:
+în Serial Monitor → ESP32 funcționează
 
-mqttClient.on("message", (topic, message) => {
-  // trimite mesajul fiecărui client WebSocket conectat
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message.toString());
-    }
-  });
-});
+în consola Node.js → MQTT funcționează
 
+în browser → WebSocket funcționează
 
-Astfel, browser-ul vede instant starea senzorului PIR.
+❌ Dacă UI nu se actualizează:
 
-4️⃣ Browser UI – Vizualizare în timp real
+verifică WebSocket (ws://localhost:8080)
 
-Browser-ul se conectează la WebSocket Node.js:
+verifică topic-ul MQTT
 
-const ws = new WebSocket("ws://localhost:8080");
-
-
-Orice mesaj MQTT (DETECTED / CLEAR) este afișat instant în pagina web:
-
-<div id="status">Astept date...</div>
-
-
-Exemple de mesaje vizualizate:
-
-Status: DETECTED
-Status: CLEAR
-
-
-Acum poți vedea în timp real când senzorul PIR detectează mișcare și când zona devine sigură.
-
-5️⃣ Flux complet al datelor
-[PIR sensor ESP32] → ESP32 trimite DETECTED/CLEAR
-      ↓ MQTT
-[HiveMQ Cloud] → broker
-      ↓ MQTT
-[Node.js Server] → preia mesajul
-      ↓ WebSocket
-[Browser UI] → afișează status în timp real
-
-6️⃣ Ce ai realizat practic
-
-Ai creat un sistem IoT complet care:
-
-Detectează evenimente fizice (mișcare)
-
-Le transmite securizat prin MQTT
-
-Le integrează într-un server Node.js
-
-Le afișează instant în browser folosind WebSocket
-
-Acest sistem poate fi extins cu:
-
-Butoane ARM/DISARM
-
-Istoric al evenimentelor
-
-Alerte vizuale sau sonore în UI
-
-Mai mulți senzori PIR# security_sistem_mqtt
+verifică că serverul Node.js rulează
