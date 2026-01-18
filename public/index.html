@@ -2,33 +2,83 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8">
-  <title>Sistem Securitate</title>
+  <title>SecureHome | Security Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
-  <h1>🔐 Sistem Securitate</h1>
-
-  <div id="status" class="safe">
-    🟢 Zonă sigură
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <div class="brand">
+    🔐 SecureHome
   </div>
+  <div id="mode" class="badge off">DISARMED</div>
+</nav>
 
-  <div class="log">
-    <h3>📜 Istoric</h3>
+<!-- ===== MAIN APP ===== -->
+<main class="app">
+
+  <section class="status-card off" id="statusCard">
+    <h2 id="statusText">System Offline</h2>
+    <p id="lastEvent">No events</p>
+  </section>
+
+  <section class="controls">
+    <button id="armBtn">ARM SYSTEM</button>
+    <button id="disarmBtn" disabled>DISARM</button>
+  </section>
+
+  <section class="history">
+    <h3>Event History</h3>
     <ul id="history"></ul>
-  </div>
-</div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <p><strong>SecureHome</strong> – Smart Security Platform</p>
+  <p>ESP32 · MQTT (HiveMQ Cloud) · Node.js · WebSockets</p>
+  <p>© 2026 | Developed for academic use</p>
+</footer>
 
 <script>
-  const statusDiv = document.getElementById("status");
-  const history = document.getElementById("history");
-
   const ws = new WebSocket("ws://localhost:8080");
 
-  ws.onopen = () => console.log("WS conectat");
+  let armed = false;
+
+  const mode = document.getElementById("mode");
+  const statusCard = document.getElementById("statusCard");
+  const statusText = document.getElementById("statusText");
+  const lastEvent = document.getElementById("lastEvent");
+  const history = document.getElementById("history");
+
+  const armBtn = document.getElementById("armBtn");
+  const disarmBtn = document.getElementById("disarmBtn");
+
+  armBtn.onclick = () => {
+    armed = true;
+    mode.textContent = "ARMED";
+    mode.className = "badge armed";
+    statusText.textContent = "System Armed";
+    statusCard.className = "status-card idle";
+    armBtn.disabled = true;
+    disarmBtn.disabled = false;
+  };
+
+  disarmBtn.onclick = () => {
+    armed = false;
+    mode.textContent = "DISARMED";
+    mode.className = "badge off";
+    statusText.textContent = "System Offline";
+    statusCard.className = "status-card off";
+    armBtn.disabled = false;
+    disarmBtn.disabled = true;
+  };
 
   ws.onmessage = (event) => {
+    if (!armed) return;
+
     const msg = event.data;
     const time = new Date().toLocaleTimeString();
 
@@ -36,12 +86,14 @@
     li.textContent = `[${time}] ${msg}`;
     history.prepend(li);
 
+    lastEvent.textContent = `${msg} at ${time}`;
+
     if (msg === "DETECTED") {
-      statusDiv.textContent = "🚨 MIȘCARE DETECTATĂ";
-      statusDiv.className = "alert";
+      statusCard.className = "status-card alert";
+      statusText.textContent = "🚨 Intrusion Detected";
     } else {
-      statusDiv.textContent = "🟢 Zonă sigură";
-      statusDiv.className = "safe";
+      statusCard.className = "status-card safe";
+      statusText.textContent = "🟢 Area Secure";
     }
   };
 </script>
