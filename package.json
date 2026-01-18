@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "chart.js": "^4.4.7",
+    "express": "^4.22.1",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.14.1",
+    "serialport": "^13.0.0",
+    "ws": "^8.19.0"
+  }
+}

@@ -1,0 +1,60 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
+
+.container {
+  width: 400px;
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #000;
+}
+
+h1 {
+  text-align: center;
+}
+
+#status {
+  text-align: center;
+  font-size: 22px;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.safe {
+  background: green;
+}
+
+.alert {
+  background: red;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.log {
+  margin-top: 20px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+li {
+  font-size: 14px;
+  border-bottom: 1px solid #333;
+  padding: 5px 0;
+}

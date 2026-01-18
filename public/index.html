@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistem Securitate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>🔐 Sistem Securitate</h1>
+
+  <div id="status" class="safe">
+    🟢 Zonă sigură
+  </div>
+
+  <div class="log">
+    <h3>📜 Istoric</h3>
+    <ul id="history"></ul>
+  </div>
+</div>
+
+<script>
+  const statusDiv = document.getElementById("status");
+  const history = document.getElementById("history");
+
+  const ws = new WebSocket("ws://localhost:8080");
+
+  ws.onopen = () => console.log("WS conectat");
+
+  ws.onmessage = (event) => {
+    const msg = event.data;
+    const time = new Date().toLocaleTimeString();
+
+    const li = document.createElement("li");
+    li.textContent = `[${time}] ${msg}`;
+    history.prepend(li);
+
+    if (msg === "DETECTED") {
+      statusDiv.textContent = "🚨 MIȘCARE DETECTATĂ";
+      statusDiv.className = "alert";
+    } else {
+      statusDiv.textContent = "🟢 Zonă sigură";
+      statusDiv.className = "safe";
+    }
+  };
+</script>
+
+</body>
+</html>
